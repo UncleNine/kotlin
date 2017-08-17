@@ -441,12 +441,15 @@ class CodegenAnnotatingVisitor extends KtVisitorVoid {
             // The first "real" containing class (not a synthetic class for lambda) is the owner of the delegated property metadata
             if (!(descriptor instanceof SyntheticClassDescriptorForLambda)) {
                 ClassId classId = DescriptorUtilsKt.getClassId(descriptor);
-                if (classId != null && DescriptorUtils.isInterface(descriptor)) {
-                    classId = classId.createNestedClassId(Name.identifier(JvmAbi.DEFAULT_IMPLS_CLASS_NAME));
+                if (classId == null) {
+                    return CodegenBinding.getAsmType(bindingContext, descriptor);
                 }
-                return classId != null
-                       ? AsmUtil.asmTypeByClassId(classId)
-                       : CodegenBinding.getAsmType(bindingContext, descriptor);
+
+                return AsmUtil.asmTypeByClassId(
+                        DescriptorUtils.isInterface(descriptor)
+                        ? classId.createNestedClassId(Name.identifier(JvmAbi.DEFAULT_IMPLS_CLASS_NAME))
+                        : classId
+                );
             }
         }
 
